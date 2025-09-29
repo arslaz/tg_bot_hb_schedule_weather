@@ -12,10 +12,11 @@ async def handle_bot_selection(message: Message, state: FSMContext):
             reply_markup=get_hb_bot_keyboard()
         )
 
-    elif message.text == "🌈 Погода":
+    elif message.text == "🇺🇸 Английский":
+        await state.set_state(EnglBot.engl_menu)
         await message.answer(
-            "❌ Функция погода находиться в разработке",
-            reply_markup=get_start_keyboard()
+            "✅ Выбран HB_bot! \n Здесь ты можешь смотреть сколько уроков прошло, добавлять уроки, смотреть сколько не оплачено и изменять это. \n Выберите действие:",
+            reply_markup=get_engl_bot_keyboard()
         )
 
     elif message.text == "📋 Расписание":

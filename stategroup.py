@@ -16,3 +16,11 @@ class AddBirthday(StatesGroup):
     name = State()
     date = State()
     user = State()
+
+class EnglBot(StatesGroup):
+    engl_menu = State()
+    engl_spam = State()
+
+class AddLess(StatesGroup):
+    engl_less = State()
+    engl_pay = State()
