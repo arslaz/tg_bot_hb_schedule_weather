@@ -94,17 +94,26 @@ async def add_pay(message: Message, state: FSMContext):
 async def add_spam(message: Message, state: FSMContext):
     print("началось")
     chat_id = str(message.chat.id)
+    try:
+        scheduler.remove_job(f"mon_{chat_id}")
+        print(f"Удалена существующая задача: {f"mon_{chat_id}"}")
+    except Exception as e:
+        print(f"Задача не найдена: {e}")
+
     scheduler.add_job(
         spam_mon,
         trigger=CronTrigger(
-            day_of_week="mon,fri,tue",
-            hour=0,
-            minute=52
+            day_of_week="mon,fri",
+            hour=11,
+            minute=10
         ),
         args=[chat_id],
-        id=f"mon_{chat_id}"
+        id=f"mon_{chat_id}",
+        replace_existing=True,
+        misfire_grace_time=3600
     )
 
+    await spam_mon(chat_id)
 
 async def spam_mon(chat_id: int):
     await bot.send_message(
