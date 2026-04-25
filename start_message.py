@@ -1,26 +1,29 @@
+from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
-
-from get_keybord import *
-from stategroup import *
+from get_keybord import get_start_button
+from json_file import add_subscriber
 from config import *
 
 async def cmd_start(message: Message, state: FSMContext):
-    await state.set_state(MainMenuState.choosing_bot)
     chat_id = str(message.chat.id)
-    if chat_id in bot_config['admin']:
-        await message.answer(
-            '🎉 Привет! Я бот с различными функциями!\n\n'
-            'Выбери, какого бота хочешь использовать:\n'
-            '🎂 HB_bot - напоминания о днях рождения\n'
-            '🇺🇸 Английский - сколько прошло уроков, сколько оплачено\n'
-            '📋 Расписание - расписанием уроков\n\n'
-            'Выбери бота на клавиатуре ниже 👇',
-            reply_markup=get_start_keyboard()
-        )
-    else:
-        await message.answer(
-            '🎉 Привет, ты можешь просто полюбоваться на этого бота\n\n'
-            '😂 Функции тебе не доступны\n'
-            '💀У тебя нету никаких прав, если ты считаешь что с тобой поступаю не правильно, можешь обратиться к админу вот его тг: 🤡\n'
-            'ты скорее всего отлетишь в долгий игнор, так что не утруждайся'
-        )
+    if chat_id not in bot_config['admin']:
+        await message.answer("Нет доступа")
+        return
+
+    await state.clear()
+    await message.answer(
+        "Привет! Нажми 🚀 Запустить, чтобы получать расписание автоматически.",
+        reply_markup=get_start_button()
+    )
+
+
+async def handle_start_button(message: Message):
+    if message.text == "🚀 Запустить":
+        is_new = add_subscriber(message.chat.id)
+        if is_new:
+            await message.answer(
+                "✅ Бот запущен! Расписание будет приходить автоматически, когда появится новое.",
+                reply_markup=None
+            )
+        else:
+            await message.answer("Вы уже подписаны.")
