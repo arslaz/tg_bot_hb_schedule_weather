@@ -1,6 +1,9 @@
 import imapclient
 import email
+from datetime import datetime, timedelta
+from email.utils import parsedate_to_datetime
 from config import *
+
 
 async def connect():
     imap = imapclient.IMAPClient(email_config['server'], ssl=True)
@@ -10,6 +13,28 @@ async def connect():
     except Exception as e:
         print(f"Ошибка подключения: {e}")
         return None
+
+
+def is_recent_email(msg) -> bool:
+    date_str = msg['Date']
+    if not date_str:
+        return False
+
+    try:
+        email_date = parsedate_to_datetime(date_str)
+        email_date = email_date.replace(tzinfo=None)
+
+        now = datetime.now()
+        yesterday = now - timedelta(days=1)
+
+        email_day = email_date.date()
+        today_day = now.date()
+        yesterday_day = yesterday.date()
+
+        return email_day in (today_day, yesterday_day)
+    except Exception:
+        return False
+
 
 async def get_unseen_message():
     imap = await connect()
@@ -26,6 +51,11 @@ async def get_unseen_message():
     last_uid = max(messages)
     raw_data = imap.fetch([last_uid], ['RFC822'])[last_uid][b'RFC822']
     msg = email.message_from_bytes(raw_data)
+
+    if not is_recent_email(msg):
+        imap.add_flags([last_uid], [b'\\Seen'])
+        imap.logout()
+        return None
 
     body = None
 
@@ -46,4 +76,3 @@ async def get_unseen_message():
 
     imap.logout()
     return body
-
